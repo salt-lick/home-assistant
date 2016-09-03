@@ -7,10 +7,10 @@ https://home-assistant.io/components/notify.sendgrid/
 import logging
 
 from homeassistant.components.notify import (
-    ATTR_TITLE, DOMAIN, BaseNotificationService)
+    ATTR_TITLE, ATTR_TITLE_DEFAULT, DOMAIN, BaseNotificationService)
 from homeassistant.helpers import validate_config
 
-REQUIREMENTS = ['sendgrid==3.1.10']
+REQUIREMENTS = ['sendgrid==3.2.10']
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -44,7 +44,7 @@ class SendgridNotificationService(BaseNotificationService):
 
     def send_message(self, message='', **kwargs):
         """Send an email to a user via SendGrid."""
-        subject = kwargs.get(ATTR_TITLE)
+        subject = kwargs.get(ATTR_TITLE, ATTR_TITLE_DEFAULT)
 
         data = {
             "personalizations": [

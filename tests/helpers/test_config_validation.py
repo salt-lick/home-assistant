@@ -1,4 +1,6 @@
 from datetime import timedelta
+import os
+import tempfile
 
 import pytest
 import voluptuous as vol
@@ -45,6 +47,51 @@ def test_longitude():
 
     for value in ('-179', 179, '12.34'):
         schema(value)
+
+
+def test_port():
+    """Test TCP/UDP network port."""
+    schema = vol.Schema(cv.port)
+
+    for value in ('invalid', None, -1, 0, 80000, '81000'):
+        with pytest.raises(vol.MultipleInvalid):
+            schema(value)
+
+    for value in ('1000', 21, 24574):
+        schema(value)
+
+
+def test_isfile():
+    """Validate that the value is an existing file."""
+    schema = vol.Schema(cv.isfile)
+
+    with tempfile.NamedTemporaryFile() as fp:
+        pass
+
+    for value in ('invalid', None, -1, 0, 80000, fp.name):
+        with pytest.raises(vol.Invalid):
+            schema(value)
+
+    with tempfile.TemporaryDirectory() as tmp_path:
+        tmp_file = os.path.join(tmp_path, "test.txt")
+        with open(tmp_file, "w") as tmp_handl:
+            tmp_handl.write("test file")
+        schema(tmp_file)
+
+
+def test_url():
+    """Test URL."""
+    schema = vol.Schema(cv.url)
+
+    for value in ('invalid', None, 100, 'htp://ha.io', 'http//ha.io',
+                  'http://??,**', 'https://??,**'):
+        with pytest.raises(vol.MultipleInvalid):
+            schema(value)
+
+    for value in ('http://localhost', 'https://localhost/test/index.html',
+                  'http://home-assistant.io', 'http://home-assistant.io/test/',
+                  'https://community.home-assistant.io/'):
+        assert schema(value)
 
 
 def test_platform_config():
